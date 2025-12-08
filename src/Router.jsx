@@ -21,11 +21,9 @@ const Router = () => {
       </Route>
       <Route path={"order"}>
         <Route element={<OrderLayout />}>
-          <Route>
-            <Route index element={<OrderPage />} />
-            <Route path=":id">
-              <Route index element={<Details />} />
-            </Route>
+          <Route index element={<OrderPage />} />
+          <Route path=":id">
+            <Route index element={<Details />} />
           </Route>
         </Route>
       </Route>
