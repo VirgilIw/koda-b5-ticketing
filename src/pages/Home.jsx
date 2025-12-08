@@ -4,7 +4,7 @@ import Subscribe from "../components/Subscribe";
 const Home = () => {
   return (
     <>
-      {/* ## Hero Section */}
+      {/* Hero Section */}
       <section className="flex flex-col md:grid md:grid-cols-2 mt-10 px-10">
         <div className="mt-10 text-center md:text-start md:w-[45vw] pl-[2%]">
           <h1 className="mb-4 text-[#1D4ED8] font-semibold ">
@@ -38,10 +38,10 @@ const Home = () => {
         </section>
       </section>
 
-      {/* ## Why Choose Us Section */}
+      {/*  Why Choose Us Section */}
       <section className="max-w-6xl mx-auto px-4 py-16">
         <div className="rounded-lg p-8 md:p-12">
-          {/* ### Header */}
+          {/*  Header */}
           <div className="text-center mb-12">
             <p className="text-blue-600 font-semibold text-sm uppercase tracking-wider mb-2">
               WHY CHOOSE US
@@ -51,7 +51,7 @@ const Home = () => {
             </h2>
           </div>
 
-          {/*  Features Grid */}
+          {/* Features Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Feature 1 */}
             <div className="text-center">
@@ -77,7 +77,7 @@ const Home = () => {
               </p>
             </div>
 
-            {/*  Feature 2 */}
+            {/* Feature 2 */}
             <div className="text-center">
               <div className="w-16 h-16 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg
@@ -100,7 +100,7 @@ const Home = () => {
               </p>
             </div>
 
-            {/*  Feature 3 */}
+            {/* Feature 3 */}
             <div className="text-center">
               <div className="w-16 h-16 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg
@@ -123,7 +123,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ## Movies Section Header */}
+      {/* Movies Section Header */}
       <section className="flex flex-col justify-center items-center mb-8">
         <h3 className="text-[#1D4ED8] font-semibold uppercase tracking-wider text-sm">
           MOVIES
@@ -133,7 +133,7 @@ const Home = () => {
         </p>
       </section>
 
-      {/* ## Movies Section */}
+      {/* Movies Section */}
       <section className="flex flex-col justify-center items-center">
         <FetchMovies />
         <button className="w-[90vw] flex justify-center text-[#1D4ED8] py-12 cursor-pointer">
@@ -141,7 +141,7 @@ const Home = () => {
         </button>
       </section>
 
-      {/* ## Upcoming Movies */}
+      {/* Upcoming Movies */}
       <section className="grid grid-cols-2 pt-2 px-10">
         <div>
           <p className="text-[#1D4ED8] py-4">UPCOMING MOVIES</p>
