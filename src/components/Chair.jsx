@@ -1,229 +1,228 @@
-// import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { useParams } from "react-router";
+import fetchUrl from "../utils/fetch";
+import { bookingContext } from "../contexts/booking/bookingContext";
+import Checkout from "./Checkout";
 
-const Chair = ({ chair, setChair }) => {
-  const posisiKursi = {
-    kursiA: [
-      { id: 1, chair: "A" },
-      { id: 2, chair: "A" },
-      { id: 3, chair: "A" },
-      { id: 4, chair: "A" },
-      { id: 5, chair: "A" },
-      { id: 6, chair: "A" },
-      { id: 7, chair: "A" },
-    ],
-    kursiB: [
-      { id: 1, chair: "B" },
-      { id: 2, chair: "B" },
-      { id: 3, chair: "B" },
-      { id: 4, chair: "B" },
-      { id: 5, chair: "B" },
-      { id: 6, chair: "B" },
-      { id: 7, chair: "B" },
-    ],
-    kursiC: [
-      { id: 1, chair: "C" },
-      { id: 2, chair: "C" },
-      { id: 3, chair: "C" },
-      { id: 4, chair: "C" },
-      { id: 5, chair: "C" },
-      { id: 6, chair: "C" },
-      { id: 7, chair: "C" },
-    ],
-    kursiD: [
-      { id: 1, chair: "D" },
-      { id: 2, chair: "D" },
-      { id: 3, chair: "D" },
-      { id: 4, chair: "D" },
-      { id: 5, chair: "D" },
-      { id: 6, chair: "D" },
-      { id: 7, chair: "D" },
-    ],
-    kursiE: [
-      { id: 1, chair: "E" },
-      { id: 2, chair: "E" },
-      { id: 3, chair: "E" },
-      { id: 4, chair: "E" },
-      { id: 5, chair: "E" },
-      { id: 6, chair: "E" },
-      { id: 7, chair: "E" },
-    ],
-    kursiF: [
-      { id: 1, chair: "F" },
-      { id: 2, chair: "F" },
-      { id: 3, chair: "F" },
-      { id: 4, chair: "F" },
-      { id: 5, chair: "F" },
-      { id: 6, chair: "F" },
-      { id: 7, chair: "F" },
-    ],
-    kursiG: [
-      { id: 1, chair: "G" },
-      { id: 2, chair: "G" },
-      { id: 3, chair: "G" },
-      { id: 4, chair: "G" },
-      { id: 5, chair: "G" },
-      { id: 6, chair: "G" },
-      { id: 7, chair: "G" },
-    ],
-  };
+const Chair = () => {
+  const { id } = useParams();
+  const [selectedMovie, setSelectedMovie] = useState(null);
+  const [chooseKursi, setChooseKursi] = useState([]);
+  const { bookingMovie } = useContext(bookingContext);
 
-  const submitChair = (kursi) => {
-    const key = `${kursi.chair}-${kursi.id}`;
+  useEffect(() => {
+    (async () => {
+      const apiKeyMovie = import.meta.env.VITE_TMDB_API_KEY_MOVIE;
+      const url = `https://api.themoviedb.org/3/movie/${id}?api_key=${apiKeyMovie}`;
+      const response = await fetchUrl(url);
+      setSelectedMovie(response);
+    })();
+  }, [id]);
 
-    setChair((prev) => {
-      const newValue = !prev[key];
-      console.log("Clicked:", key, "→", newValue);
-
-      return {
-        ...prev,
-        [key]: newValue,
-      };
+  const handleClick = (item) => {
+    setChooseKursi((prev) => {
+      if (prev.includes(item)) {
+        return prev.filter((seat) => seat !== item);
+      }
+      return [...prev, item];
     });
   };
 
+  const rows = ["A", "B", "C", "D", "E", "F", "G"];
+  const seats = [];
+  
+  for (let r = 0; r < rows.length; r++) {
+    const row = [];
+    for (let c = 1; c <= 7; c++) {
+      row.push(`${rows[r]}-${c}`);
+    }
+    row.push("GAP");
+    for (let c = 8; c <= 14; c++) {
+      row.push(`${rows[r]}-${c}`);
+    }
+    seats.push(row);
+  }
+
   return (
-    <section className="flex mt-5 bg-slate-50 pt-4">
-      <section className="text-3xl mx-5 pr-2">
-        <p className="pb-2">A</p>
-        <p className="py-2">B</p>
-        <p className="pb-2">C</p>
-        <p className="py-1">D</p>
-        <p className="py-2">E</p>
-        <p className="py-2">F</p>
-        <p className="py-1">G</p>
-      </section>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="mx-auto max-w-7xl">
+        <div className="grid gap-6 lg:grid-cols-[1fr_350px]">
+          {/* Main Content */}
+          <div>
+            {/* Movie Info Card */}
+            {selectedMovie && (
+              <div className="mb-6 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+                <div className="flex gap-4 p-6">
+                  <img
+                    className="h-32 w-24 rounded object-cover"
+                    src={`https://image.tmdb.org/t/p/w500${selectedMovie.poster_path}`}
+                    alt={selectedMovie.title}
+                  />
+                  <div className="flex-1">
+                    <h2 className="mb-2 text-xl font-bold text-gray-900">
+                      {selectedMovie.title}
+                    </h2>
+                    <div className="mb-3 flex flex-wrap gap-2">
+                      {selectedMovie.genres.map((genre) => (
+                        <span
+                          key={genre.id}
+                          className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700"
+                        >
+                          {genre.name}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Showtime:</span>{" "}
+                      {bookingMovie.time}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
-      {/* Kursi */}
-      <section className="grid grid-rows-7 gap-2">
-        {/* ROW A */}
-        <div className="flex">
-          {posisiKursi.kursiA.map((kursiA) => {
-            return (
-              <button
-                key={kursiA.id}
-                className={`w-10 h-10 mr-1 rounded ${
-                  chair[`${kursiA.chair}-${kursiA.id}`]
-                    ? "bg-slate-600"
-                    : "bg-slate-300"
-                }`}
-                onClick={() => submitChair(kursiA)}
-              ></button>
-            );
-          })}
-        </div>
+            {/* Seat Selection */}
+            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-6 text-2xl font-bold text-gray-900">
+                Choose Your Seat
+              </h2>
 
-        {/* ROW B */}
-        <div className="flex">
-          {posisiKursi.kursiB.map((kursiB) => {
-            return (
-              <button
-                key={kursiB.id}
-                className={`w-10 h-10 mr-1 rounded ${
-                  chair[`${kursiB.chair}-${kursiB.id}`]
-                    ? "bg-slate-600"
-                    : "bg-slate-300"
-                }`}
-                onClick={() => submitChair(kursiB)}
-              ></button>
-            );
-          })}
-        </div>
+              {/* Screen */}
+              <div className="mb-8">
+                <div className="mx-auto w-4/5 rounded-t-3xl  py-2 text-center">
+                  <span className="text-sm font-medium text-gray-600">
+                    SCREEN
+                  </span>
+                </div>
+              </div>
 
-        {/* ROW C */}
-        <div className="flex">
-          {posisiKursi.kursiC.map((kursiC) => {
-            return (
-              <button
-                key={kursiC.id}
-                className={`w-10 h-10 mr-1 rounded ${
-                  chair[`${kursiC.chair}-${kursiC.id}`]
-                    ? "bg-slate-600"
-                    : "bg-slate-300"
-                }`}
-                onClick={() => submitChair(kursiC)}
-              ></button>
-            );
-          })}
-        </div>
+              {/* Seats Grid */}
+              <div className="flex justify-center gap-6">
+                {/* Row Labels */}
+                <div className="flex flex-col gap-3 pt-1">
+                  {rows.map((row) => (
+                    <div
+                      key={row}
+                      className="flex h-8 items-center justify-center"
+                    >
+                      <span className="text-sm font-semibold text-gray-600">
+                        {row}
+                      </span>
+                    </div>
+                  ))}
+                </div>
 
-        {/* ROW D */}
-        <div className="flex">
-          {posisiKursi.kursiD.map((kursiD) => {
-            return (
-              <button
-                key={kursiD.id}
-                className={`w-10 h-10 mr-1 rounded ${
-                  chair[`${kursiD.chair}-${kursiD.id}`]
-                    ? "bg-slate-600"
-                    : "bg-slate-300"
-                }`}
-                onClick={() => submitChair(kursiD)}
-              ></button>
-            );
-          })}
-        </div>
+                {/* Seats */}
+                <div className="flex flex-col gap-3">
+                  {seats.map((row, rowIdx) => (
+                    <div key={rowIdx} className="flex items-center gap-2">
+                      {row.map((seat, idx) =>
+                        seat === "GAP" ? (
+                          <div key={idx} className="w-6" />
+                        ) : (
+                          <button
+                            key={seat}
+                            onClick={() => handleClick(seat)}
+                            className={`h-8 w-8 rounded-md text-xs font-medium transition-all ${
+                              chooseKursi.includes(seat)
+                                ? "bg-blue-600 text-white shadow-md"
+                                : "bg-gray-200 text-gray-700 hover:bg-blue-400 hover:text-white"
+                            }`}
+                          >
+                          
+                          </button>
+                        )
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-        {/* ROW E */}
-        <div className="flex">
-          {posisiKursi.kursiE.map((kursiE) => {
-            return (
-              <button
-                key={kursiE.id}
-                className={`w-10 h-10 mr-1 rounded ${
-                  chair[`${kursiE.chair}-${kursiE.id}`]
-                    ? "bg-slate-600"
-                    : "bg-slate-300"
-                }`}
-                onClick={() => submitChair(kursiE)}
-              ></button>
-            );
-          })}
-        </div>
+              {/* Legend */}
+              <div className="mt-8 flex justify-center gap-6 border-t pt-6">
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-md bg-gray-200"></div>
+                  <span className="text-sm text-gray-600">Available</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-md bg-blue-600"></div>
+                  <span className="text-sm text-gray-600">Selected</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        {/* ROW F */}
-        <div className="flex">
-          {posisiKursi.kursiF.map((kursiF) => {
-            return (
-              <button
-                key={kursiF.id}
-                className={`w-10 h-10 mr-1 rounded ${
-                  chair[`${kursiF.chair}-${kursiF.id}`]
-                    ? "bg-slate-600"
-                    : "bg-slate-300"
-                }`}
-                onClick={() => submitChair(kursiF)}
-              ></button>
-            );
-          })}
-        </div>
+          {/* Sidebar - Booking Summary */}
+          <div className="lg:sticky lg:top-6 lg:h-fit">
+            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+              <h3 className="mb-4 text-lg font-bold text-gray-900">
+                {bookingMovie.location} - {bookingMovie.cinema}
+              </h3>
 
-        {/* ROW G */}
-        <div className="flex">
-          {posisiKursi.kursiG.map((kursiG) => {
-            return (
-              <button
-                key={kursiG.id}
-                className={`w-10 h-10 mr-1 rounded ${
-                  chair[`${kursiG.chair}-${kursiG.id}`]
-                    ? "bg-slate-600"
-                    : "bg-slate-300"
-                }`}
-                onClick={() => submitChair(kursiG)}
-              ></button>
-            );
-          })}
+              {/* Selected Seats */}
+              <div className="mb-6">
+                <p className="mb-2 text-sm font-medium text-gray-700">
+                  Selected Seats:
+                </p>
+                {chooseKursi.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {chooseKursi.map((seat) => (
+                      <span
+                        key={seat}
+                        className="rounded-md bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700"
+                      >
+                        {seat}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">No seats selected</p>
+                )}
+              </div>
+
+              {/* Booking Details */}
+              <div className="space-y-3 border-t pt-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Movie:</span>
+                  <span className="font-medium text-gray-900">
+                    {bookingMovie.movieTitle}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Date:</span>
+                  <span className="font-medium text-gray-900">
+                    {bookingMovie.date}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Time:</span>
+                  <span className="font-medium text-gray-900">
+                    {bookingMovie.time}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Location:</span>
+                  <span className="font-medium text-gray-900">
+                    {bookingMovie.location}
+                  </span>
+                </div>
+                <div className="flex justify-between border-t pt-3 text-sm">
+                  <span className="text-gray-600">Total Seats:</span>
+                  <span className="font-bold text-gray-900">
+                    {chooseKursi.length}
+                  </span>
+                </div>
+              </div>
+
+              {/* Checkout */}
+              <div className="mt-6">
+                <Checkout />
+              </div>
+            </div>
+          </div>
         </div>
-        <section className="flex text-3xl mt-2">
-          <p className="px-3">1</p>
-          <p className="px-3">2</p>
-          <p className="px-4">3</p>
-          <p className="px-3">4</p>
-          <p className="px-3">5</p>
-          <p className="px-4">6</p>
-          <p className="px-3">7</p>
-        </section>
-      </section>
-    </section>
+      </div>
+    </div>
   );
 };
 
