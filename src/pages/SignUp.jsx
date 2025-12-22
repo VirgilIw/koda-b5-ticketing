@@ -1,86 +1,125 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router";
+import useAuth from "../hooks/useAuth";
+import {  useState } from "react";
+import { useContext } from "react";
+import { authContext } from "/src/contexts/auth/authContext";
+import useLocalStorage from "../hooks/useLocalStorage";
 
 const SignUp = () => {
-  const [allData, setAllData] = useState([]);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showEye, setShowEye] = useState(false);
+  const {
+    value,
+    handleChange,
+    showEye,
+    handleEye,
+    error,
+    validateAll,
+    resetForm,
+  } = useAuth(
+    { email: "", password: "" },
+    {
+      required: true,
+      pattern: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$/,
+      patternMessage:
+        "Password harus 8 karakter, ada huruf besar, kecil, dan angka",
+    },
+  );
+  const [_, setSignupError] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  //
-  useEffect(() => {
-    window.localStorage.getItem("datas");
-  }, []);
+  // const users = useSelector((state) => state.auth.users);
+  const { state, dispatch } = useContext(authContext);
+const [, setActiveUser] = useLocalStorage("user", {
+  user: null,
+});
 
-  const handleForm = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+    if (!validateAll()) return;
 
-    let objInput = {};
-    objInput = { ...objInput, emailNich: btoa(email) };
-    objInput = { ...objInput, passwordNich: btoa(password) };
-    //
-    let data;
+    const existingUser = state.users.find((user) => user.email === value.email);
 
-    data = [...allData, objInput];
-    window.localStorage.setItem("datas", JSON.stringify(data));
+    if (existingUser) {
+      setSignupError("Akun sudah terdaftar");
+      return;
+    }
 
-    //
-    setAllData(data);
-    setEmail("");
-    setPassword("");
+    // simpan akun ke Context
+    dispatch({
+      type: "NEW_USER",
+      payload: value,
+    });
+
+    // set user login
+    setActiveUser({
+      user: value,
+    });
+
+    resetForm();
+    setSignupError("");
+    setShowSuccess(true);
   };
 
-  const handleClick = (e) => {
-    e.preventDefault();
-    setShowEye(!showEye);
-  };
 
   return (
-    <section className="bg-[url('/src/assets/Group-9.png')] bg-cover w-screen h-screen flex flex-col justify-center items-center">
-      <div className="bg-white mx-10 px-5 rounded-md h-[90vh] flex flex-col gap-4 md:w-[35%] lg:w-[35%]">
-        <section className="flex justify-around items-center text-center text-white mt-4">
+    <section className="flex h-screen w-screen flex-col items-center justify-center bg-[url('/src/assets/Group-9.png')] bg-cover">
+      {showSuccess && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-[90%] max-w-sm rounded-lg bg-white p-6 text-center">
+            <h2 className="mb-2 text-xl font-semibold">Berhasil 🎉</h2>
+            <p className="mb-4 text-gray-600">Akun anda berhasil didaftarkan</p>
+            <button
+              onClick={() => setShowSuccess(false)}
+              className="rounded bg-blue-600 px-4 py-2 text-white"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+      <div className="mx-10 flex h-[90vh] w-[70%] flex-col gap-4 rounded-md bg-white px-5 md:w-[75%] lg:h-[90vh] lg:w-[80%] xl:h-[80vh]">
+        <section className="mt-4 flex items-center justify-around text-center text-white">
           <button>
-            <p className="rounded-full w-10 h-10 bg-[#1D4ED8] pt-2">1</p>
-            <p className="text-black text-[12px] pt-2">Fill Form</p>
+            <p className="h-10 w-10 rounded-full bg-[#1D4ED8] pt-2">1</p>
+            <p className="pt-2 text-[12px] text-black">Fill Form</p>
           </button>
-          <span className="relative top-4 border-b border-dashed border-gray-400 w-10"></span>
+          <span className="relative top-4 w-10 border-b border-dashed border-gray-400"></span>
           <button>
-            <p className="rounded-full w-10 h-10 bg-[#A0A3BD] pt-2">1</p>
-            <p className="text-black text-[12px] pt-2">Activate</p>
+            <p className="h-10 w-10 rounded-full bg-[#A0A3BD] pt-2">1</p>
+            <p className="pt-2 text-[12px] text-black">Activate</p>
           </button>
-          <span className="relative top-4 border-b border-dashed border-gray-400 w-10"></span>
+          <span className="relative top-4 w-10 border-b border-dashed border-gray-400"></span>
           <div>
-            <p className="rounded-full w-10 h-10 bg-[#A0A3BD] pt-2">3</p>
-            <p className="text-black text-[12px] pt-2">Done</p>
+            <p className="h-10 w-10 rounded-full bg-[#A0A3BD] pt-2">3</p>
+            <p className="pt-2 text-[12px] text-black">Done</p>
           </div>
         </section>
-
-        <form className="flex flex-col" onSubmit={handleForm}>
+        <form className="flex flex-col" onSubmit={handleSubmit}>
           <label htmlFor="email" className="py-1">
             Email
           </label>
           <input
             type="text"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={value.email}
+            onChange={handleChange}
             name="email"
             autoComplete="off"
-            className="border border-slate-300 py-3 px-4 rounded"
+            className="rounded border border-slate-300 px-4 py-3"
             placeholder="Enter your email"
           />
-          <label htmlFor="password" className="text-start pt-4 pb-1">
+          {error.email && <p className="text-red-500">{error.email}</p>}
+          <label htmlFor="password" className="pt-4 pb-1 text-start">
             Password
           </label>
-          <div className="border border-slate-300 flex justify-between rounded">
+          <div className="relative flex justify-between overflow-x-hidden rounded border border-slate-300">
             <input
               type={showEye ? "text" : "password"}
               name="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="py-3 px-4 w-55 outline-none"
+              value={value.password}
+              onChange={handleChange}
+              className="w-50 px-4 py-3 outline-none md:w-full"
               placeholder="Enter your password"
             />
-            <button onClick={handleClick}>
+            <button onClick={handleEye}>
               <img
                 src={
                   showEye
@@ -88,32 +127,53 @@ const SignUp = () => {
                     : "/src/assets/eye-open.svg"
                 }
                 alt="eye"
-                className="w-10 pr-4 relative z-10 top-0"
+                className="absolute top-3 right-0 z-10 w-10 pr-4"
               />
             </button>
           </div>
-          <Link
-            to={"/"}
-            className="text-[#1D4ED8] font-semibold text-sm my-6 text-end"
+          {error.password && <p className="text-red-500">{error.password}</p>}
+          <div className="flex gap-4">
+            <input
+              type="checkbox"
+              name="checkbox"
+              id="checkbox"
+              className="w-4 accent-blue-600"
+            />
+            <label
+              htmlFor="checkbox"
+              className="my-6 text-sm font-semibold text-[#1D4ED8]"
+            >
+              I agree to terms & conditions
+            </label>
+          </div>
+          <button
+            type="submit"
+            className="rounded bg-[#1D4ED8] py-3 text-white"
           >
-            Forgot your password?
-          </Link>
-          <button type="submit" className="bg-blue-500 text-white rounded py-3">
-            Login
+            Join For Free Now
           </button>
         </form>
-        <section className="flex justify-center items-center gap-5">
-          <div className="border-b border-b-slate-300 w-1/2"></div>
+        <p className="flex items-center justify-center gap-2">
+          Already have an account?
+          <Link
+            to="/sign-in"
+            className="text-blue-600 underline underline-offset-3"
+          >
+            Log In
+          </Link>
+        </p>
+        <section className="flex items-center justify-center gap-5">
+          <div className="w-1/2 border-b border-b-slate-300"></div>
           <p>Or</p>
-          <div className="border-b border-b-slate-300 w-1/2"></div>
+          <div className="w-1/2 border-b border-b-slate-300"></div>
         </section>
-        <section className="flex justify-center gap-10 mt-2">
+        <section className="mt-2 flex justify-center gap-10">
           {/*  */}
           <Link>
             <img
               src="/src/assets/google.svg"
               alt="google"
-              className="inset-shadow-sm inset-shadow-indigo-100 p-4 rounded"
+              className="rounded p-4 inset-shadow-sm inset-shadow-indigo-100"
             />
           </Link>
           {/*  */}
@@ -121,7 +181,7 @@ const SignUp = () => {
             <img
               src="/src/assets/fb.svg"
               alt="google"
-              className="inset-shadow-sm inset-shadow-indigo-100 p-4 rounded"
+              className="rounded p-4 inset-shadow-sm inset-shadow-indigo-100"
             />
           </Link>
         </section>

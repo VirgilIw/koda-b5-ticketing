@@ -1,73 +1,110 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import useAuth from "../hooks/useAuth";
+import { useDispatch } from "react-redux";
+import { signIn } from "../redux/slices/auth.slice";
+import { useContext, useState } from "react";
+import { authContext } from "../contexts/auth/authContext";
 
 const SignIn = () => {
-  const [allData, setAllData] = useState([]);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showEye, setShowEye] = useState(false);
+  const {
+    value,
+    handleChange,
+    showEye,
+    handleEye,
+    error,
+    validateAll,
+    resetForm,
+  } = useAuth(
+    { email: "", password: "" },
+    {
+      required: true,
+      pattern: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$/,
+      patternMessage:
+        "Password harus 8 karakter, ada huruf besar, kecil, dan angka",
+    },
+  );
 
-  //
-  useEffect(() => {
-    window.localStorage.getItem("datas");
-  }, []);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const handleForm = (e) => {
+  // ambil user terdaftar dari redux persist
+  // const users = useSelector((state) => state.auth.users);
+  const { state } = useContext(authContext);
+  //  error khusus login
+  const [loginError, setLoginError] = useState("");
+
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    let objInput = {};
-    objInput = { ...objInput, emailNich: btoa(email) };
-    objInput = { ...objInput, passwordNich: btoa(password) };
-    //
-    let data;
+    if (!validateAll()) return;
 
-    data = [...allData, objInput];
-    window.localStorage.setItem("datas", JSON.stringify(data));
+    const existingUser = state.user.find((user) => user.email === value.email);
 
-    //
-    setAllData(data);
-    setEmail("");
-    setPassword("");
-  };
+    if (!existingUser) {
+      setLoginError("Akun belum terdaftar");
+      return;
+    }
 
-  const handleClick = (e) => {
-    e.preventDefault();
-    setShowEye(!showEye);
+    if (existingUser.password !== value.password) {
+      setLoginError("Password salah");
+      return;
+    }
+
+    dispatch(signIn(existingUser));
+    resetForm();
+    setLoginError("");
+    navigate("/", { replace: true });
   };
 
   return (
-    <section className="bg-[url('/src/assets/Group-9.png')] bg-cover w-screen h-screen flex flex-col justify-center items-center">
-      <div className="bg-white mx-10 px-5 rounded-md h-[90vh] flex flex-col gap-4">
-        <h1 className="text-2xl flex justify-start pt-8">Welcome Back 👏</h1>
+    <section className="flex h-screen w-screen flex-col items-center justify-center bg-[url('/src/assets/Group-9.png')] bg-cover">
+      <div className="flex h-[90vh] w-[90%] flex-col gap-4 rounded-md bg-white px-6 md:w-[70%] lg:w-[80%] xl:h-[70vh]">
+        <h1 className="pt-8 text-2xl">Welcome Back 👏</h1>
         <p className="text-[#A0A3BD]">
           Sign in with your data that you entered during your registration
         </p>
-        <form className="flex flex-col" onSubmit={handleForm}>
-          <label htmlFor="email" className="py-1">
-            Email
-          </label>
+
+        {/* ERROR LOGIN */}
+        {loginError && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="w-[90%] max-w-sm rounded-lg bg-white p-6 text-center">
+              <h2 className="mb-2 text-xl font-semibold text-red-600">
+                Login Gagal ❌
+              </h2>
+              <p className="mb-4 text-gray-600">{loginError}</p>
+              <button
+                onClick={() => setLoginError("")}
+                className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        )}
+
+        <form className="flex flex-col" onSubmit={handleSubmit}>
+          <label className="py-1">Email</label>
           <input
             type="text"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             name="email"
-            autoComplete="off"
-            className="border border-slate-300 py-3 px-4 rounded"
+            value={value.email}
+            onChange={handleChange}
+            className="rounded border px-4 py-3"
             placeholder="Enter your email"
           />
-          <label htmlFor="password" className="text-start pt-4 pb-1">
-            Password
-          </label>
-          <div className="border border-slate-300 flex justify-between rounded">
+          {error.email && <p className="text-red-500">{error.email}</p>}
+
+          <label className="pt-4 pb-1">Password</label>
+          <div className="relative flex rounded border">
             <input
               type={showEye ? "text" : "password"}
               name="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="py-3 px-4 w-55 outline-none"
+              value={value.password}
+              onChange={handleChange}
+              className="w-full px-4 py-3 outline-none"
               placeholder="Enter your password"
             />
-            <button onClick={handleClick}>
+            <button onClick={handleEye}>
               <img
                 src={
                   showEye
@@ -75,32 +112,37 @@ const SignIn = () => {
                     : "/src/assets/eye-open.svg"
                 }
                 alt="eye"
-                className="w-10 pr-4 relative z-10 top-0"
+                className="absolute top-3 right-0 w-10 pr-4"
               />
             </button>
           </div>
-          <Link
-            to={"/"}
-            className="text-[#1D4ED8] font-semibold text-sm my-6 text-end"
-          >
-            Forgot your password?
+          <Link to="/forgot-password" className="pt-4 text-end">
+            forgot Password?
           </Link>
-          <button type="submit" className="bg-blue-500 text-white rounded py-3">
+          {error.password && <p className="text-red-500">{error.password}</p>}
+
+          <button
+            type="submit"
+            disabled={!!error.email || !!error.password}
+            className="mt-6 rounded bg-blue-600 py-3 text-white disabled:opacity-50"
+          >
             Login
           </button>
         </form>
-        <section className="flex justify-center items-center gap-5">
-          <div className="border-b border-b-slate-300 w-1/2"></div>
-          <p>Or</p>
-          <div className="border-b border-b-slate-300 w-1/2"></div>
-        </section>
-        <section className="flex justify-center gap-10 mt-2">
+
+        <p className="text-center">
+          Don't have an account?
+          <Link to="/sign-up" className="ml-1 text-blue-600 underline">
+            Sign Up
+          </Link>
+        </p>
+        <section className="mt-2 flex justify-center gap-10">
           {/*  */}
           <Link>
             <img
               src="/src/assets/google.svg"
               alt="google"
-              className="inset-shadow-sm inset-shadow-indigo-100 p-4 rounded"
+              className="rounded p-4 inset-shadow-sm inset-shadow-indigo-100"
             />
           </Link>
           {/*  */}
@@ -108,7 +150,7 @@ const SignIn = () => {
             <img
               src="/src/assets/fb.svg"
               alt="google"
-              className="inset-shadow-sm inset-shadow-indigo-100 p-4 rounded"
+              className="rounded p-4 inset-shadow-sm inset-shadow-indigo-100"
             />
           </Link>
         </section>
